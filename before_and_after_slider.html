@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Before & After Image Slider</title>
+    <!-- Load Tailwind CSS for base styling and layout -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .slider-container {
+            position: relative;
+            width: 100%;
+            max-width: 900px;
+            aspect-ratio: 16 / 9;
+            overflow: hidden;
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            user-select: none;
+        }
+
+        /* Base styles for both images */
+        .slider-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            pointer-events: none;
+        }
+
+        /* The top image uses clip-path to reveal the image underneath */
+        .image-after {
+            /* Initial clip-path at 50% */
+            clip-path: polygon(0 0, 50% 0, 50% 100%, 0 100%);
+            z-index: 10;
+        }
+
+        .image-before {
+            z-index: 5;
+        }
+
+        /* Slider Handle */
+        .slider-handle {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%; /* Initial position */
+            width: 4px;
+            background-color: white;
+            z-index: 20;
+            transform: translateX(-50%);
+            cursor: ew-resize;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Custom grabber button in the middle of the handle */
+        .slider-button {
+            width: 40px;
+            height: 40px;
+            background-color: white;
+            border-radius: 50%;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.1s ease;
+        }
+
+        .slider-handle:active .slider-button,
+        .slider-handle.active .slider-button {
+            transform: scale(1.1);
+        }
+
+        /* SVG arrows inside the button */
+        .slider-button svg {
+            width: 24px;
+            height: 24px;
+            color: #4b5563;
+        }
+        
+        /* Labels */
+        .label {
+            position: absolute;
+            bottom: 1rem;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            font-size: 0.875rem;
+            font-weight: 500;
+            backdrop-filter: blur(4px);
+            z-index: 15;
+            pointer-events: none;
+            opacity: 0.9;
+        }
+        
+        .label-before { right: 1rem; }
+        .label-after { left: 1rem; }
+
+    </style>
+</head>
+<body class="p-4 sm:p-8">
+
+    <div class="w-full max-w-5xl mx-auto flex flex-col items-center gap-8">
+        
+        <div class="text-center space-y-2">
+            <h1 class="text-3xl sm:text-4xl font-bold text-gray-800 tracking-tight">Color Grading Comparison</h1>
+            <p class="text-gray-500">Drag the slider to see the before and after effect.</p>
+        </div>
+
+        <!-- Main Slider Container -->
+        <div class="slider-container" id="sliderContainer">
+            
+            <!-- Bottom Image (Before / Grayscale) -->
+            <img src="https://picsum.photos/id/1015/1200/800?grayscale" alt="Before" class="slider-image image-before">
+            <div class="label label-before">Original</div>
+            
+            <!-- Top Image (After / Color) -->
+            <img src="https://picsum.photos/id/1015/1200/800" alt="After" class="slider-image image-after" id="imageAfter">
+            <div class="label label-after">Color Graded</div>
+
+            <!-- Draggable Handle -->
+            <div class="slider-handle" id="sliderHandle">
+                <div class="slider-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4" transform="rotate(90 12 12)" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('sliderContainer');
+            const sliderHandle = document.getElementById('sliderHandle');
+            const imageAfter = document.getElementById('imageAfter');
+            
+            let isDragging = false;
+
+            // Function to update the slider position and image clip-path
+            const moveSlider = (clientX) => {
+                const rect = container.getBoundingClientRect();
+                
+                // Calculate position relative to container
+                let x = clientX - rect.left;
+                
+                // Clamp the value to keep the slider within the container bounds
+                x = Math.max(0, Math.min(x, rect.width));
+                
+                // Calculate percentage
+                const percentage = (x / rect.width) * 100;
+                
+                // Update DOM elements
+                sliderHandle.style.left = `${percentage}%`;
+                imageAfter.style.clipPath = `polygon(0 0, ${percentage}% 0, ${percentage}% 100%, 0 100%)`;
+            };
+
+            // Mouse Events
+            const onMouseDown = (e) => {
+                isDragging = true;
+                sliderHandle.classList.add('active');
+            };
+
+            const onMouseUp = () => {
+                isDragging = false;
+                sliderHandle.classList.remove('active');
+            };
+
+            const onMouseMove = (e) => {
+                if (!isDragging) return;
+                moveSlider(e.clientX);
+            };
+
+            // Touch Events
+            const onTouchStart = (e) => {
+                isDragging = true;
+                sliderHandle.classList.add('active');
+            };
+
+            const onTouchEnd = () => {
+                isDragging = false;
+                sliderHandle.classList.remove('active');
+            };
+
+            const onTouchMove = (e) => {
+                if (!isDragging) return;
+                // Prevent scrolling while dragging the slider on mobile
+                e.preventDefault(); 
+                moveSlider(e.touches[0].clientX);
+            };
+
+            // Attach Event Listeners to the handle and window
+            sliderHandle.addEventListener('mousedown', onMouseDown);
+            window.addEventListener('mouseup', onMouseUp);
+            window.addEventListener('mousemove', onMouseMove);
+
+            sliderHandle.addEventListener('touchstart', onTouchStart, { passive: false });
+            window.addEventListener('touchend', onTouchEnd);
+            // Need passive: false to allow e.preventDefault() in touchmove
+            window.addEventListener('touchmove', onTouchMove, { passive: false });
+            
+            // Allow clicking anywhere on the container to jump the slider
+            container.addEventListener('click', (e) => {
+                if (e.target === sliderHandle || sliderHandle.contains(e.target)) return;
+                moveSlider(e.clientX);
+            });
+        });
+    </script>
+</body>
+</html>
