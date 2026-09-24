@@ -12,8 +12,7 @@ A lightweight, responsive, and interactive "before-and-after" image comparison s
 * **Embeddable:** Perfect for embedding into Canva presentations, Canva websites, Notion, or any other platform that supports iFrames.
 
 ## 🚀 Live Demo
-[View the Live Demo Here](https://[your-username].github.io/[your-repo-name]/) 
-*(Note: replace the link above with your actual GitHub Pages URL!)*
+[View the Live Demo Here](https://jeapjeapfoto.github.io/before-after-slider/) 
 
 ## 🛠️ How to Use
 
